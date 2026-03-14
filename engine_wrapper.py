@@ -56,7 +56,7 @@ class EngineWrapper:
 
     def search_for(self, board, game, movetime):
         if game.variant_name == "Kyoto shogi":
-            moves = game.state["fairyMoves"].split()
+            moves = game.state["fairyMoves"]
         else:
             moves = "" if game.variant_name == "Standard" else game.state["moves"].split()
         sfen = board.sfen() if game.variant_name == "Standard" else game.initial_sfen
@@ -65,7 +65,7 @@ class EngineWrapper:
     
     def search_with_ponder(self, game, board, btime, wtime, binc, winc, byo, ponder=False):
         if game.variant_name == "Kyoto shogi":
-            moves = game.state["fairyMoves"].split()
+            moves = game.state["fairyMoves"]
         else:
             moves = [m.usi() for m in list(board.move_stack)] if game.variant_name == "Standard" else game.state["moves"].split()
         sfen = game.initial_sfen

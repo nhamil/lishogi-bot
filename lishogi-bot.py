@@ -24,7 +24,7 @@ from http.client import RemoteDisconnected
 
 logger = logging.getLogger(__name__)
 
-__version__ = "1.1.2"
+__version__ = "1.2.0"
 
 terminated = False
 
@@ -309,7 +309,7 @@ def play_game(li, game_id, control_queue, user_profile, config, challenge_queue,
                 game.state = upd
                 if is_game_over(game):
                     if game.variant_name == "Kyoto shogi":
-                        engine.report_game_result(game, game.state["fairyMoves"].split(" "))
+                        engine.report_game_result(game, game.state["fairyMoves"])
                     else:
                         engine.report_game_result(game, game.state["moves"].split(" "))
                     tell_user_game_result(game)
@@ -508,7 +508,7 @@ def fake_thinking(config, board, game):
 
 
 def print_move_number(moves):
-    if moves:
+    if moves and isinstance(moves, str):
         moves = moves.split(" ")
     move = moves[-1] if moves and len(moves) > 0 else None
     logger.info("")
@@ -531,7 +531,7 @@ def setup_board(game):
     else:
         board = shogi.Board()
         if game.variant_name == "Kyoto shogi":
-            for move in game.state["fairyMoves"].split():
+            for move in game.state["fairyMoves"]:
                 board.push(shogi.Move.null())
         else:
             for move in game.state["moves"].split():
