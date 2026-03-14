@@ -48,8 +48,9 @@ challenge:                                           # Incoming challenges.
   only_bot: false                                    # Enable this to accept challenges only from bots. This will disable accepting challenges from human.
   max_increment: 20                                  # Maximum amount of increment to accept a challenge. The max is 180. Set to 0 for no increment.
   min_increment: 0                                   # Minimum amount of increment to accept a challenge.
-  max_byoyomi: 30                                    # Maximum amount of increment to accept a challenge. The max is 180. Set to 0 for no byoyomi.
-  min_byoyomi: 0                                     # Minimum amount of increment to accept a challenge.
+  max_byoyomi: 30                                    # Maximum amount of byoyomi to accept a challenge. The max is 180. Set to 0 for no byoyomi.
+  min_byoyomi: 0                                     # Minimum amount of byoyomi to accept a challenge.
+  min_nonzero_byoyomi: 0                             # Minimum amount of byoyomi to accept when byoyomi is nonzero. The default is 0. Useful if lag is a problem. 
   max_base: 1800                                     # Maximum amount of base time to accept a challenge. The max is 315360000 (10 years).
   min_base: 0                                        # Minimum amount of base time to accept a challenge.
   variants:                                          # Shogi variants to accept (https://lishogi.org/variant).
@@ -60,7 +61,7 @@ challenge:                                           # Incoming challenges.
 #   - kyotoshogi
 #   - checkshogi
   time_controls:                                     # Time controls to accept.
-    - ultraBullet
+#   - ultraBullet
     - bullet
     - blitz
     - rapid

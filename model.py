@@ -1,6 +1,22 @@
 import time
 from urllib.parse import urljoin
 
+def estimate_total_time(base, incr, byo, pds): 
+    def zero_if_null(x): 
+        if x is None or x < 0: return 0 
+        return x 
+
+    return zero_if_null(base) + 60 * zero_if_null(incr) + 25 * zero_if_null(byo) * max(1, zero_if_null(pds))
+
+def get_speed_from_tc(perf, base, incr, byo, pds): 
+    if perf == "correspondence": return perf
+    t = estimate_total_time(base, incr, byo, pds) 
+
+    if t < 60: return "ultraBullet"
+    elif t < 300: return "bullet" 
+    elif t < 600: return "blitz" 
+    elif t < 1500: return "rapid" 
+    else: return "classical"
 
 class Challenge:
     def __init__(self, c_info):
@@ -8,9 +24,10 @@ class Challenge:
         self.rated = c_info["rated"]
         self.variant = c_info["variant"]["key"]
         self.perf_name = c_info["perf"]["name"]
-        self.speed = c_info["speed"]
+        self.speed = c_info.get("speed")
         self.increment = c_info.get("timeControl", {}).get("increment", -1)
         self.byoyomi = c_info.get("timeControl", {}).get("byoyomi", -1)
+        self.periods = c_info.get("timeControl", {}).get("periods", -1)
         self.base = c_info.get("timeControl", {}).get("limit", -1)
         self.challenger = c_info.get("challenger")
         self.challenger_title = self.challenger.get("title") if self.challenger else None
@@ -20,12 +37,23 @@ class Challenge:
         self.challenger_rating_int = self.challenger["rating"] if self.challenger else 0
         self.challenger_rating = self.challenger_rating_int or "?"
 
+        if self.speed is None: 
+            self.speed = get_speed_from_tc(
+                self.perf_name, 
+                self.base, 
+                self.increment, 
+                self.byoyomi, 
+                self.periods 
+            )
+
     def is_supported_variant(self, supported):
         return self.variant in supported
 
-    def is_supported_time_control(self, supported_speed, supported_increment_max, supported_increment_min, supported_byoyomi_max, supported_byoyomi_min, supported_base_max, supported_base_min):
+    def is_supported_time_control(self, supported_speed, supported_increment_max, supported_increment_min, supported_byoyomi_max, supported_byoyomi_min, supported_byoyomi_min_nonzero, supported_base_max, supported_base_min):
         if self.increment < 0:
             return self.speed in supported_speed
+        if self.byoyomi > 0 and self.byoyomi < supported_byoyomi_min_nonzero: 
+            return False 
         return self.speed in supported_speed and supported_increment_max >= self.increment >= supported_increment_min and supported_byoyomi_max >= self.byoyomi >= supported_byoyomi_min and supported_base_max >= self.base >= supported_base_min
 
     def is_supported_mode(self, supported):
@@ -42,10 +70,11 @@ class Challenge:
         inc_min = config.get("min_increment", 0)
         byoyomi_max = config.get("max_byoyomi", 180)
         byoyomi_min = config.get("min_byoyomi", 0)
+        byoyomi_min_nonzero = config.get("min_nonzero_byoyomi", 0)
         base_max = config.get("max_base", 315360000)
         base_min = config.get("min_base", 0)
         modes = config["modes"]
-        return self.is_supported_time_control(tc, inc_max, inc_min, byoyomi_max, byoyomi_min, base_max, base_min) and self.is_supported_variant(variants) and self.is_supported_mode(modes)
+        return self.is_supported_time_control(tc, inc_max, inc_min, byoyomi_max, byoyomi_min, byoyomi_min_nonzero, base_max, base_min) and self.is_supported_variant(variants) and self.is_supported_mode(modes)
 
     def score(self):
         rated_bonus = 200 if self.rated else 0
@@ -74,6 +103,7 @@ class Game:
         self.clock_initial = clock.get("initial", 1000 * 3600 * 24 * 365 * 10) # unlimited = 10 years
         self.clock_increment = clock.get("increment", 0)
         self.clock_byoyomi = clock.get("byoyomi", 0)
+        self.clock_periods = clock.get("periods", 0) 
         self.perf_name = json.get("perf").get("name") if json.get("perf") else "{perf?}"
         self.variant_name = json.get("variant")["name"]
         self.sente = Player(json.get("sente"))
@@ -93,6 +123,15 @@ class Game:
         self.abort_at = time.time() + abort_time
         self.terminate_at = time.time() + (self.clock_initial + self.clock_increment + self.clock_byoyomi) / 1000 + abort_time + 60
         self.disconnect_at = time.time()
+
+        if self.speed is None: 
+            self.speed = get_speed_from_tc(
+                self.perf_name, 
+                self.clock_initial, 
+                self.clock_increment, 
+                self.clock_byoyomi, 
+                self.clock_periods
+            )
 
     def url(self):
         return urljoin(self.base_url, f"{self.id}/{self.my_color}")
