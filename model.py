@@ -59,11 +59,26 @@ class Challenge:
     def is_supported_mode(self, supported):
         return "rated" in supported if self.rated else "casual" in supported
 
+    def check_allow_block_lists(self, config): 
+        allow_list = config.get("bot_allow_list" if self.challenger_is_bot else "allow_list")
+        block_list = config.get("bot_block_list" if self.challenger_is_bot else "block_list")
+        username = self.challenger_name
+
+        if block_list is not None and username in block_list: 
+            return False 
+
+        if allow_list is not None: 
+            return username in allow_list 
+
+        return True 
+
     def is_supported(self, config):
         if not config.get("accept_bot", True) and self.challenger_is_bot:
             return False
         if config.get("only_bot", False) and not self.challenger_is_bot:
             return False
+        if not self.check_allow_block_lists(config): 
+            return False 
         variants = config["variants"]
         tc = config["time_controls"]
         inc_max = config.get("max_increment", 180)

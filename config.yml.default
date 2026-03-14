@@ -71,6 +71,18 @@ challenge:                                           # Incoming challenges.
   modes:                                             # Game modes to accept.
     - casual                                         # Unrated games.
     - rated                                          # Rated games - must comment if the engine doesn't try to win.
+# block_list:                                        # List of users from which the challenges are always declined. 
+#   - user1
+#   - user2
+# allow_list:                                        # List of users from which the challenges are exclusively accepted. 
+#   - user1
+#   - user2
+# bot_block_list:                                    # List of bot users from which the challenges are always declined. 
+#   - bot1
+#   - bot2
+# bot_allow_list:                                    # List of bot users from which the challenges are exclusively accepted. 
+#   - bot1
+#   - bot2
 
 greeting:
     # Optional substitution keywords (include curly braces):
