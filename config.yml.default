@@ -60,6 +60,7 @@ challenge:                                           # Incoming challenges.
 #   - annanshogi
 #   - kyotoshogi
 #   - checkshogi
+#   - dobutsu
   time_controls:                                     # Time controls to accept.
 #   - ultraBullet
     - bullet
